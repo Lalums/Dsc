@@ -1,0 +1,126 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "type": "String",
+      "defaultValue": "eastus",
+      "allowedValues": [
+        "eastus",
+        "eastus2",
+        "westus",
+        "centralus",
+        "northcentralus",
+        "southcentralus",
+        "northeurope",
+        "westeurope",
+        "eastasia",
+        "southeastasia",
+        "japaneast",
+        "japanwest",
+        "australiaeast",
+        "australiasoutheast",
+        "brazilsouth",
+        "southindia",
+        "centralindia",
+        "westindia",
+        "canadacentral",
+        "canadaeast",
+        "westus2",
+        "westcentralus",
+        "uksouth",
+        "ukwest",
+        "koreacentral",
+        "koreasouth"
+      ]
+
+    },
+    "Networkcount": {
+      "type": "int",
+      "defaultValue": 2
+    }
+  },
+
+
+  "variables": {
+    "addressPrefix": "10.1.0.0/24",
+    "virtualNetworkName": "nic2",
+    "publicIPAddressType": "Dynamic",
+    "subnetName": "Subnet",
+    "subnetPrefix": "10.1.0.0/24",
+    "networkSecurityGroupName": "nsg2",
+    "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets',variables('virtualNetworkName'),variables('subnetName'))]",
+    "publicIPAddressName": "PIP"
+  },
+    "resources": [
+      {
+        "type": "Microsoft.Network/publicIPAddresses",
+        "name": "[concat(variables('publicIPAddressName'),copyIndex())]",
+        "apiVersion": "2015-05-01-preview",
+        "location": "[parameters('location')]",
+        "copy": {
+          "name": "publicIpCopy",
+          "count": "[parameters('Networkcount')]"
+        },
+        "tags": {
+          "displayName": "PublicIPAddress"
+        },
+        "properties": {
+          "publicIPAllocationMethod": "[variables('publicIPAddressType')]"
+
+        }
+      },
+      {
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "[variables('virtualNetworkName')]",
+        "apiVersion": "2015-05-01-preview",
+        "location": "[parameters('location')]",
+        "tags": {
+          "displayName": "VirtualNetwork"
+        },
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "[variables('addressPrefix')]"
+            ]
+          },
+          "subnets": [
+            {
+              "name": "[variables('subnetName')]",
+              "properties": {
+                "addressPrefix": "[variables('subnetPrefix')]",
+                "networkSecurityGroup": {
+                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                }
+              }
+            }
+          ]
+        }
+      },
+
+      {
+        "apiVersion": "2015-06-15",
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "name": "[variables('networkSecurityGroupName')]",
+        "location": "[parameters('Location')]",
+        "properties": {
+          "securityRules": [
+            {
+              "name": "RDP",
+              "properties": {
+                "description": "Allow RDP",
+                "protocol": "Tcp",
+                "sourcePortRange": "*",
+                "destinationPortRange": "3389",
+                "sourceAddressPrefix": "*",
+                "destinationAddressPrefix": "*",
+                "access": "Allow",
+                "priority": 110,
+                "direction": "Inbound"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
