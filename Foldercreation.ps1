@@ -5,7 +5,7 @@
         {
           File CreateFile {
             Type = 'Directory'
-            DestinationPath = 'C:\lalu'
+            DestinationPath = 'C:\lalukumar'
             Ensure = "Present"
             }
         }
